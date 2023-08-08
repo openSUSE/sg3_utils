@@ -4,6 +4,7 @@ directory have their own "man" pages. There is also a sg3_utils man page.
 
 Changelog for openSUSE (post 1.48)
   - apply https://github.com/doug-gilbert/sg3_utils/pull/39
+    and its revision [20230807] mainly for Android
   - rescan-scsi-bus.sh: fix multipath resize without update
   - rescan-scsi-bus.sh: remove /tmp/rescan-scsi-mpath-info.txt
   - avoid root FS going read-only with
