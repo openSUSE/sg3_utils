@@ -3,6 +3,8 @@ some description at the top of its ".c" file. All utilities in the main
 directory have their own "man" pages. There is also a sg3_utils man page.
 
 Changelog for openSUSE (post 1.48)
+  - sg_wr_mode: fix --contents and --cfile= handling
+    https://github.com/doug-gilbert/sg3_utils/issues/40
   - sg_inq: --export conformance for SCSI name string and ATA fields, github PR #83
   - rescan-scsi-bus.sh: github issue #76 shellcheck fixes Xose Vazquez Perez
   - scsi_logging_level: add MIT license Xose Vazquez Perez
