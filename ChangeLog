@@ -8,6 +8,7 @@ Changelog for openSUSE (post 1.48)
   - avoid root FS going read-only with
    "rescan-scsi-bus.sh -r" (gh#doug-gilbert/sg3_utils#46)
   - sg_turs: fix missing CDB on several codepaths
+  - sg_dd: fix bug that identified all block devices as NVME
 
 Changelog for released sg3_utils-1.48 [20230801] [svn: r1042]
   - decoding utilities: add --json[=JO] and --js-file=JFN
