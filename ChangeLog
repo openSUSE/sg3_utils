@@ -5,6 +5,8 @@ directory have their own "man" pages. There is also a sg3_utils man page.
 Changelog for openSUSE (post 1.48)
   - rescan-scsi-bus.sh: fix multipath resize without update
   - rescan-scsi-bus.sh: remove /tmp/rescan-scsi-mpath-info.txt
+  - avoid root FS going read-only with
+   "rescan-scsi-bus.sh -r" (gh#doug-gilbert/sg3_utils#46)
 
 Changelog for released sg3_utils-1.48 [20230801] [svn: r1042]
   - decoding utilities: add --json[=JO] and --js-file=JFN
