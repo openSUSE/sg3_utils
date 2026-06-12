@@ -2356,10 +2356,10 @@ std_inq_decode(const uint8_t * rp, int len, struct opts_t * op,
                 printf("SCSI_VENDOR_ENC=%s\n", xtra_buff);
             }
         } else
-            sgj_pr_hr(jsp, " Vendor identification: %s\n", xtra_buff);
+            sgj_pr_hr(jsp, "  Vendor identification: %s\n", xtra_buff);
         if (len <= 16) {
             if (! op->do_export)
-                sgj_pr_hr(jsp, " Product identification: <none>\n");
+                sgj_pr_hr(jsp, "  Product identification: <none>\n");
         } else {
             memcpy(xtra_buff, &rp[16], 16);
             xtra_buff[16] = '\0';
@@ -2371,11 +2371,11 @@ std_inq_decode(const uint8_t * rp, int len, struct opts_t * op,
                     printf("SCSI_MODEL_ENC=%s\n", xtra_buff);
                 }
             } else
-                sgj_pr_hr(jsp, " Product identification: %s\n", xtra_buff);
+                sgj_pr_hr(jsp, "  Product identification: %s\n", xtra_buff);
         }
         if (len <= 32) {
             if (! op->do_export)
-                sgj_pr_hr(jsp, " Product revision level: <none>\n");
+                sgj_pr_hr(jsp, "  Product revision level: <none>\n");
         } else {
             memcpy(xtra_buff, &rp[32], 4);
             xtra_buff[4] = '\0';
@@ -2384,7 +2384,7 @@ std_inq_decode(const uint8_t * rp, int len, struct opts_t * op,
                 if (rlen > 0)
                     printf("SCSI_REVISION=%s\n", xtra_buff);
             } else
-                sgj_pr_hr(jsp, " Product revision level: %s\n", xtra_buff);
+                sgj_pr_hr(jsp, "  Product revision level: %s\n", xtra_buff);
         }
         if (op->do_vendor && (len > 36) && ('\0' != rp[36]) &&
             (' ' != rp[36])) {
@@ -2394,7 +2394,7 @@ std_inq_decode(const uint8_t * rp, int len, struct opts_t * op,
                 if (vlen > 0)
                     printf("VENDOR_SPECIFIC=%s\n", xtra_buff);
             } else
-                sgj_pr_hr(jsp, " Vendor specific: %s\n", xtra_buff);
+                sgj_pr_hr(jsp, "  Vendor specific: %s\n", xtra_buff);
         }
         if (op->do_descriptors) {
             for (j = 0, k = 58; ((j < 8) && ((k + 1) < len));
@@ -2409,7 +2409,7 @@ std_inq_decode(const uint8_t * rp, int len, struct opts_t * op,
                 if (vlen > 0)
                     printf("VENDOR_SPECIFIC=%s\n", xtra_buff);
             } else
-                sgj_pr_hr(jsp, " Vendor specific: %s\n", xtra_buff);
+                sgj_pr_hr(jsp, "  Vendor specific: %s\n", xtra_buff);
         }
         if (op->do_vendor && (len > 243) &&
             (0 == strncmp("OPEN-V", (const char *)&rp[16], 6))) {
@@ -2419,7 +2419,7 @@ std_inq_decode(const uint8_t * rp, int len, struct opts_t * op,
                 if (vlen > 0)
                     printf("VENDOR_SPECIFIC_OPEN-V_LDEV_NAME=%s\n", xtra_buff);
             } else
-                sgj_pr_hr(jsp, " Vendor specific OPEN-V LDEV Name: %s\n",
+                sgj_pr_hr(jsp, "  Vendor specific OPEN-V LDEV Name: %s\n",
                           xtra_buff);
         }
     }
@@ -2429,7 +2429,7 @@ std_inq_decode(const uint8_t * rp, int len, struct opts_t * op,
         if (as_json)
             jo2p = std_inq_decode_js(rp, len, op, jop);
         if ((0 == op->maxlen) && usn_buff[0])
-            sgj_pr_hr(jsp, " Unit serial number: %s\n", usn_buff);
+            sgj_pr_hr(jsp, "  Unit serial number: %s\n", usn_buff);
         if (op->do_descriptors) {
             sgj_opaque_p jap = sgj_named_subarray_r(jsp, jo2p,
                                                 "version_descriptor_list");
