@@ -12,7 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         build:
-        - android
+        - android-23
+        - android-33
         - linux-gcc
         - linux-clang
         - linux-x86-gcc
@@ -20,9 +21,12 @@ jobs:
         - linux-mingw64-gcc
         - macos
         include:
-        - build: android
+        - build: android-23
           cc: clang
-          host: aarch64-linux-android32
+          host: aarch64-linux-android23
+        - build: android-33
+          cc: clang
+          host: aarch64-linux-android33
         - build: linux-gcc
           cc: gcc
         - build: linux-clang
@@ -43,10 +47,11 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install Android NDK
         run: |
-          if [ ${{matrix.build}} = android ]; then \
-              wget --quiet https://dl.google.com/android/repository/android-ndk-r24-linux.zip; \
-              unzip -q android-ndk-r24-linux.zip;  \
-          fi
+          case ${{matrix.build}} \
+          in android*) \
+              wget --quiet https://dl.google.com/android/repository/android-ndk-r25c-linux.zip; \
+              unzip -q android-ndk-r25c-linux.zip;;  \
+          esac
       - name: Install Ubuntu packages
         run: |
           sudo apt-get -q update
@@ -60,7 +65,7 @@ jobs:
       - name: Build
         run: |
           echo "HOST=${{matrix.host}}"
-          NDK=$PWD/android-ndk-r24/toolchains/llvm/prebuilt/linux-x86_64/bin
+          NDK=$PWD/android-ndk-r25c/toolchains/llvm/prebuilt/linux-x86_64/bin
           export PATH="$NDK:$PATH"
           ./autogen.sh
           ./configure --host=${{matrix.host}} \

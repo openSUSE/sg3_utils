@@ -41,7 +41,7 @@
  * commands tailored for SES (enclosure) devices.
  */
 
-static const char * version_str = "2.86 20230623";    /* ses4r04 */
+static const char * version_str = "2.88 20260526";    /* ses4r05 */
 
 #define MY_NAME "sg_ses"
 
@@ -1023,6 +1023,11 @@ usage(int help_num)
         other_usage(true);
         pr2serr("   corresponding shorter form:\n");
         other_usage(false);
+        pr2serr("\nFirst usage above is for fetching pages or fields from "
+            "a SCSI enclosure.\nThe second usage is for changing a page or "
+            "field in an enclosure. For\nmore information use '--help' (or "
+            "'-h'). Use '-hhhh' for examples.\n"
+            );
     } else if (1 == help_num) {
         pr2serr("Usage for general access:\n");
         gen_usage(true);
@@ -1038,6 +1043,8 @@ usage(int help_num)
             "only\n"
             "    --get=STR|-G STR    get value of field by acronym or "
             "position\n"
+            "    --help|-h           print out usage message, use multiple "
+            "times for more\n"
             "    --index=IIA|-I IIA    individual index ('-1' for overall) "
             "or element\n"
             "                          type abbreviation (e.g. 'arr'). A "
@@ -6549,11 +6556,11 @@ join_aes_helper(const uint8_t * ae_bp, const uint8_t * ae_last_bp,
                 if (eip && (1 == eiioe)) {         /* EIP and EIIOE=1 */
                     ei = ae_bp[3];
                     jr2p = tesp->j_base + ei;
-                    if ((ei >= tesp->num_j_eoe) ||
+                    if ((ei >= tesp->num_j_rows) ||
                         (NULL == jr2p->enc_statp)) {
-                        pr2serr("%s: oi=%d, ei=%d [num_eoe=%d], eiioe=1 "
+                        pr2serr("%s: oi=%d, ei=%d [num_rows=%d], eiioe=1 "
                                 "not in join_arr\n", __func__, k, ei,
-                                tesp->num_j_eoe);
+                                tesp->num_j_rows);
                         return broken_ei;
                     }
                     devslotnum_and_sasaddr(jr2p, ae_bp);

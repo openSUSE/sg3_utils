@@ -4,7 +4,7 @@
 # (c) 2006--2022 Hannes Reinecke, GNU GPL v2 or later
 # $Id: rescan-scsi-bus.sh,v 1.57 2012/03/31 14:08:48 garloff Exp $
 
-VERSION="20230413"
+VERSION="20260526"
 SCAN_WILD_CARD=4294967295
 
 # Only use standard PATH
@@ -265,9 +265,10 @@ is_removable ()
 
   p=/sys/class/scsi_device/${host}:${channel}:${id}:${lun}/device/inquiry
   # Extract the second byte of the INQUIRY response and check bit 7 (mask 0x80).
-  b=$(hexdump -n1 -e '/1 "%02X"' "$p" 2>/dev/null)
+  b=$(od -j1 -N1 -An -t x1 "$p" 2>/dev/null)
   if [ -n "$b" ]; then
-    echo $(((0x$b & 0x80) != 0))
+    # Handle od leading space with parameter substitution.
+    echo $(((0x${b// /} & 0x80) != 0))
   else
     sg_inq "$sg_len_arg" /dev/$SGDEV 2>/dev/null | sed -n 's/^.*RMB=\([0-9]*\).*$/\1/p'
   fi
@@ -295,7 +296,15 @@ testonline ()
   RC=$?
 
   # Handle in progress of becoming ready and unit attention
-  while [ $RC = 2 -o $RC = 6 ] && [ $ctr -lt $timeout ] ; do
+  # In bash || and && have the same precedence so following while evaluated left to right
+  while [ $RC = 2 ] || [ $RC = 6 ] && [ $ctr -lt $timeout ] ; do
+    # Check immediately for removable devices; TEST UNIT READY obviously will
+    # fail for a removable device with no medium
+    RMB=$(is_removable)
+    print_and_scroll_back "$host:$channel:$id:$lun $SGDEV ($RMB) "
+    [ $RC = 2 ] && [ "$RMB" = "1" ] && break
+
+    # Check non-removable devices second
     if [ $RC = 2 ] && [ "$RMB" != "1" ] && sg_inq "$sg_len_arg" /dev/$SGDEV | grep -q -i "PQual=0" ; then
       echo -n "."
       let LN+=1
@@ -306,11 +315,6 @@ testonline ()
     let ctr+=1
     sg_turs "$sg_turs_opt" /dev/$SGDEV >/dev/null 2>&1
     RC=$?
-    # Check for removable device; TEST UNIT READY obviously will
-    # fail for a removable device with no medium
-    RMB=$(is_removable)
-    print_and_scroll_back "$host:$channel:$id:$lun $SGDEV ($RMB) "
-    [ $RC = 2 ] && [ "$RMB" = "1" ] && break
   done
   if [ $ctr != 0 ] ; then
     white_out
@@ -486,7 +490,7 @@ udevadm_settle()
     # Loop for up to 60 seconds if sd devices still are settling..
     # This allows us to continue if udev events are stuck on multipaths in recovery mode
     while [ $tmo -gt 0 ] ; do
-      if ! "$UDEVADM" settle --timeout=1 | grep -E -q sd[a-z]+ ; then
+      if ! "$UDEVADM" settle --timeout=1 | grep -E -q 'sd[a-z]+' ; then
         break;
       fi
       let tmo=$tmo-1
@@ -547,7 +551,7 @@ dolunscan()
   fi
 
   : f "$remove" s $SCSISTR
-  if [ "$remove" ] && [ "$SCSISTR" -o "$remappedlun0" = "1" ] ; then
+  if [ "$remove" ] && ( [ "$SCSISTR" ] || [ "$remappedlun0" = "1" ] ) ; then
     if [ $RC != 0 ] || [ ! -z "$forceremove" ] || [ -n "$remappedlun0" ] ; then
       if [ "$remappedlun0" != "1" ] ; then
         echo -en "\r\e[A\e[A\e[A${red}REM: "
@@ -813,7 +817,8 @@ getallmultipathinfo()
       echo "softlink /dev/mapper/${mp} not available."
       continue
     fi
-    local ret=$(readlink /dev/mapper/$mp 2>/dev/null)
+    local ret=
+    ret=$(readlink /dev/mapper/$mp 2>/dev/null)
     if [[ $? -ne 0 || -z "$ret" ]]; then
       echo "readlink /dev/mapper/$mp failed. check multipath status."
       continue
@@ -872,7 +877,7 @@ findremapped()
     # If udev events updated the disks already, but the multipath device isn't update
     # check for old devices to make sure we found remapped luns
     if [ -n "$mp_enable" ] && [ $remapped -eq 0 ]; then
-      findmultipath "$sddev" $id_serial
+      findmultipath "$sddev" "$id_serial"
       if [ $? -eq 1 ] ; then
         remapped=1
       fi
@@ -1140,13 +1145,13 @@ findresized()
   if [ -n "$mp_enable" ] && [ -n "$mpaths" ] ; then
     i=0
     for m in $mpaths ; do
-      mpathsizes[$i]="$($MULTIPATH -l "$m" | grep -E -o [0-9]+.[0-9]+[KMGT])"
+      mpathsizes[$i]="$($MULTIPATH -l "$m" | grep -E -o '[0-9]+.[0-9]+[KMGT]')"
       let i=$i+1
     done
     resizempaths
     i=0
     for m in $mpaths ; do
-      mpathsize="$($MULTIPATH -l "$m" | grep -E -o [0-9\.]+[KMGT])"
+      mpathsize="$($MULTIPATH -l "$m" | grep -E -o '[0-9\.]+[KMGT]')"
       echo "$m ${mpathsizes[$i]} => $mpathsize"
       let i=$i+1
     done
@@ -1359,9 +1364,9 @@ if [ -w /sys/module/scsi_mod/parameters/default_dev_flags ] && [ $scan_flags != 
     unset OLD_SCANFLAGS
   fi
 fi
-DMSETUP=$(which dmsetup)
+DMSETUP=$(command -v dmsetup)
 [ -z "$DMSETUP" ] && flush= && mp_enable=
-MULTIPATH=$(which multipath)
+MULTIPATH=$(command -v multipath)
 [ -z "$MULTIPATH" ] && flush= && mp_enable=
 
 echo -n "Scanning SCSI subsystem for new devices"
